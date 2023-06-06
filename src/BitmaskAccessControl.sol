@@ -34,7 +34,7 @@ abstract contract BitmaskAccessControl is IBitmaskAccessControl {
     mapping(address => uint256) public userRoles;
  
     constructor() {
-        /// @dev automatically grants the default admin role to the child contract's deployer.
+        /// @dev automatically grants the default admin role to the child contract deployer.
         _grantRole(ROLE_ADMIN_DEFAULT, msg.sender);
     }
     
@@ -68,9 +68,8 @@ abstract contract BitmaskAccessControl is IBitmaskAccessControl {
     /// @param _account The addresse to check if the role is assigned to.
     function _hasRole(uint256 _roleFlag, address _account) internal view virtual returns(bool accountHasRole) {
         assembly {
-            mstore(0x0, _account)
+            mstore(0x0, shr(0x60, shl(0x60, _account)))
             mstore(0x20, userRoles.slot)
-            // Equivalent to: `accountHasRole = userRoles[_account] & _roleFlag`
             accountHasRole := and(sload(keccak256(0x0, 0x40)), _roleFlag)
         }
     }
@@ -82,7 +81,7 @@ abstract contract BitmaskAccessControl is IBitmaskAccessControl {
     /// @param _account The addresse to assign the role to.
     function _grantRole(uint256 _roleFlag, address _account) internal virtual {
         assembly {
-            mstore(0x0, _account)
+            mstore(0x0, shr(0x60, shl(0x60, _account)))
             mstore(0x20, userRoles.slot)
 
             let slotHash := keccak256(0x0, 0x40)
@@ -108,7 +107,7 @@ abstract contract BitmaskAccessControl is IBitmaskAccessControl {
     /// @param _account The addresse to revoke the role from.
     function _revokeRole(uint256 _roleFlag, address _account) internal virtual {
         assembly {
-            mstore(0x0, _account)
+            mstore(0x0, shr(0x60, shl(0x60, _account)))
             mstore(0x20, userRoles.slot)
             
             let slotHash := keccak256(0x0, 0x40)
@@ -132,7 +131,7 @@ abstract contract BitmaskAccessControl is IBitmaskAccessControl {
     /// @param _roleFlag The role flag.
     modifier onlyRole(uint256 _roleFlag) {
         assembly {
-            mstore(0x0, caller())
+            mstore(0x0, shr(0x60, shl(0x60, caller())))
             mstore(0x20, userRoles.slot)
 
             if iszero(and(sload(keccak256(0x0, 0x40)), _roleFlag)) {
